@@ -148,11 +148,25 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 
 		localStorage.setItem('score', 0);
 		localStorage.setItem('perClick', 1);
+		localStorage.setItem('auto', 0);
 		priceArray.forEach((p, i) => {
 			localStorage.setItem(p, Math.pow(10, i) * 50);
+		});
+		autoArray.forEach((p, i) => {
+			localStorage.setItem(p, Math.pow(10, i) * 75);
 		});
 		window.location.reload();
 	}
 });
 
-// TODO: setInterval for every second, and increment from autoscore
+setInterval(() => {
+	if (localStorage.getItem('auto') !== null) {
+		auto = Number(localStorage.auto);
+	}
+	const amt = localStorage['auto'];
+	const currScore = localStorage['score'];
+	scoreElem.innerHTML = `Total rubies: ${
+		parseInt(amt) + parseInt(currScore)
+	}`;
+	localStorage.setItem('score', parseInt(amt) + parseInt(currScore));
+}, 1000);
