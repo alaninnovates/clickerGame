@@ -1,19 +1,31 @@
 let score = 0;
 let perClick = 1;
+let auto = 0;
 let prices = {};
+let autoPrices = {};
 
 const priceArray = ['price1', 'price2', 'price3', 'price4'];
 const upgradeArray = ['upgrade1', 'upgrade2', 'upgrade3', 'upgrade4'];
+const autoArray = ['auto1', 'auto2', 'auto3', 'auto4'];
 
 const ruby = document.getElementById('ruby');
 const scoreElem = document.getElementById('score');
 const perClickElem = document.getElementById('perClick');
+const autoElem = document.getElementById('autoScore');
 
 const getTextForPrice = (amt, price) => {
 	return `Upgrade rubies per click (+${amt.toString()})<br>Costs: ${price} rubies`;
 };
 
+const getTextForAutoPrice = (amt, price) => {
+	return `Upgrade rubies per second (+${amt.toString()})<br>Costs: ${price} rubies`;
+};
+
 const updateRubiesPerClick = (perClick) => {
+	return `Rubies per click: ${perClick.toLocaleString()}`;
+};
+
+const updateAutoRubiesPerClick = (perClick) => {
 	return `Rubies per click: ${perClick.toLocaleString()}`;
 };
 
@@ -25,6 +37,10 @@ if (localStorage.getItem('perClick') !== null) {
 	perClick = Number(localStorage.perClick);
 }
 
+if (localStorage.getItem('auto') !== null) {
+	auto = Number(localStorage.auto);
+}
+
 priceArray.forEach((p, i) => {
 	if (localStorage.getItem(p) === null) {
 		prices[i] = Math.pow(10, i) * 50;
@@ -33,8 +49,17 @@ priceArray.forEach((p, i) => {
 	}
 });
 
+autoArray.forEach((p, i) => {
+	if (localStorage.getItem(p) === null) {
+		autoPrices[i] = Math.pow(10, i) * 75;
+	} else {
+		autoPrices[i] = Number(localStorage[p]);
+	}
+});
+
 scoreElem.innerHTML = `Total rubies: ${score.toLocaleString()}`;
 perClickElem.innerHTML = `Rubies per click: ${perClick.toLocaleString()}`;
+autoElem.innerHTML = `Rubies per second: ${auto.toLocaleString()}`;
 
 const click = () => {
 	score += perClick;
@@ -66,6 +91,25 @@ const handleUpgrade = (i) => {
 	}
 };
 
+const handleAutoUpgrade = (i) => {
+	if (score >= autoPrices[i]) {
+		auto += Math.pow(10, i);
+		score -= autoPrices[i];
+		autoPrices[i] = Math.ceil(autoPrices[i] * 1.4);
+		scoreElem.innerHTML = `Total rubies: ${score.toLocaleString()}`;
+
+		document.getElementById(`auto${i + 1}`).innerHTML = getTextForAutoPrice(
+			Math.pow(10, i),
+			autoPrices[i]
+		);
+		autoElem.innerHTML = updateAutoRubiesPerClick(auto);
+
+		localStorage.setItem(`auto${i + 1}`, autoPrices[i]);
+		localStorage.setItem('score', score);
+		localStorage.setItem('auto', auto);
+	}
+};
+
 upgradeArray.forEach((element, i) => {
 	const elem = document.getElementById(element);
 	elem.innerHTML = getTextForPrice(Math.pow(10, i), prices[i]);
@@ -74,9 +118,21 @@ upgradeArray.forEach((element, i) => {
 	});
 });
 
+autoArray.forEach((element, i) => {
+	const elem = document.getElementById(element);
+	elem.innerHTML = getTextForAutoPrice(Math.pow(10, i), autoPrices[i]);
+	elem.addEventListener('click', () => {
+		handleAutoUpgrade(i);
+	});
+});
+
 const reset = () => {
 	for (let i = 0; i < priceArray.length; i++) {
 		localStorage.setItem(`price${i + 1}`, 0);
+	}
+
+	for (let i = 0; i < autoArray.length; i++) {
+		localStorage.setItem(`auto${i + 1}`, 0);
 	}
 };
 
@@ -98,3 +154,5 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 		window.location.reload();
 	}
 });
+
+// TODO: setInterval for every second, and increment from autoscore
